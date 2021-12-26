@@ -4,11 +4,13 @@ var mobx = require('mobx');
 var React = require('react');
 var moment = require('moment');
 var reactFilepond = require('react-filepond');
+var FilePondPluginFileValidateType = require('filepond-plugin-file-validate-type');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var moment__default = /*#__PURE__*/_interopDefaultLegacy(moment);
+var FilePondPluginFileValidateType__default = /*#__PURE__*/_interopDefaultLegacy(FilePondPluginFileValidateType);
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -81,17 +83,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with ORIGAM. If not, see <http://www.gnu.org/licenses/>.
 */
+// Register the plugin
+reactFilepond.registerPlugin(FilePondPluginFileValidateType__default["default"]);
 var apiurl = "ApiUrl";
 var filterFileType = "FilterFileType";
+var invalidFileTypeMessage = "InvalidFileTypeMessage";
 var FileUploadPlugin = /** @class */ (function () {
     function FileUploadPlugin() {
-        this.$type_ISectionPlugin = 1;
+        this.$type_IScreenPlugin = 1;
         this.id = "";
         this.initialized = false;
     }
     FileUploadPlugin.prototype.initialize = function (xmlAttributes) {
         this.apiurl = this.getXmlParameter(xmlAttributes, apiurl);
         this.filterFileType = this.getXmlParameter(xmlAttributes, filterFileType);
+        this.invalidFileTypeMessage = this.getXmlParameter(xmlAttributes, invalidFileTypeMessage);
         this.initialized = true;
     };
     FileUploadPlugin.prototype.getXmlParameter = function (xmlAttributes, parameterName) {
@@ -102,22 +108,30 @@ var FileUploadPlugin = /** @class */ (function () {
     };
     FileUploadPlugin.prototype.getComponent = function (data, createLocalizer) {
         var localizer = createLocalizer([]);
-        var files = React.useState([])[0];
+        var fileType = [filterFileType];
         moment__default["default"].locale(localizer.locale);
         if (!this.initialized) {
             return React__default["default"].createElement(React__default["default"].Fragment, null);
         }
         return (React__default["default"].createElement("div", { className: S.mainContainer },
-            React__default["default"].createElement(reactFilepond.FilePond, { files: files, allowReorder: true, allowMultiple: true, labelIdle: 'Drag & Drop your files or <span class="filepond--label-action">Browse</span>' })));
+            React__default["default"].createElement(reactFilepond.FilePond, { server: apiurl, allowFileTypeValidation: true, acceptedFileTypes: fileType, labelFileTypeNotAllowed: invalidFileTypeMessage, instantUpload: true, maxParallelUploads: 1, files: GetFiles(), allowReorder: true, allowMultiple: true, onupdatefiles: SetFiles(), labelIdle: 'Drag & Drop your files or <span class="filepond--label-action">Browse</span>' })));
     };
     __decorate([
         mobx.observable
     ], FileUploadPlugin.prototype, "initialized", void 0);
     __decorate([
         mobx.observable
-    ], FileUploadPlugin.prototype, "getScreenParameters", void 0);
+    ], FileUploadPlugin.prototype, "setScreenParameters", void 0);
     return FileUploadPlugin;
 }());
+function GetFiles() {
+    var files = React.useState([])[0];
+    return files;
+}
+function SetFiles() {
+    var setFiles = React.useState([])[0];
+    return setFiles;
+}
 
 exports.FileUploadPlugin = FileUploadPlugin;
 //# sourceMappingURL=index.js.map

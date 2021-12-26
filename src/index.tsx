@@ -19,13 +19,13 @@ along with ORIGAM. If not, see <http://www.gnu.org/licenses/>.
 
 import S from './styles.module.scss';
 import { observable } from "mobx";
-import React, { useState } from "react";
+import React, { Component, useState } from "react";
 import moment from "moment";
 import {
   ILocalization,
   ILocalizer,
   IPluginData,
-  ISectionPlugin
+  IScreenPlugin 
 } from "@origam/plugin-interfaces";
 import { FilePond,registerPlugin } from "react-filepond";
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
@@ -38,8 +38,8 @@ const apiurl = "ApiUrl";
 const filterFileType = "FilterFileType";
 const invalidFileTypeMessage = "InvalidFileTypeMessage"
 
-export class FileUploadPlugin implements ISectionPlugin {
-  $type_ISectionPlugin: 1 = 1;
+export class FileUploadPlugin implements IScreenPlugin {
+  $type_IScreenPlugin: 1 = 1;
   id: string = ""
   apiurl: string ;
   filterFileType: string | undefined;
@@ -61,18 +61,17 @@ export class FileUploadPlugin implements ISectionPlugin {
     return xmlAttributes[parameterName];
   }
 
-
+  requestSessionRefresh: (() => Promise<any>) | undefined;
    
-  getComponent(data: IPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
+   getComponent(data: IPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
     const localizer = createLocalizer([]);
-    const [files] = useState([]);
-    const setFiles:any = useState([]);
+    
     const fileType:string[] = [filterFileType];
     moment.locale(localizer.locale)
     if (!this.initialized) {
       return <></>;
     }
-    
+   
     return (
       <div className={S.mainContainer}>
            <FilePond
@@ -82,15 +81,62 @@ export class FileUploadPlugin implements ISectionPlugin {
         labelFileTypeNotAllowed={invalidFileTypeMessage}
         instantUpload={true}
         maxParallelUploads={1}
-        files={files}
+        files={GetFiles()}
         allowReorder={true}
         allowMultiple={true}
-        onupdatefiles={setFiles}
+        onupdatefiles={SetFiles()}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
       </div>
     );
   }
   @observable
-  getScreenParameters: (() => { [parameter: string]: string }) | undefined;
+  setScreenParameters: ((parameters: { [p: string]: string }) => void) | undefined;
+}
+class App extends Component {
+  pond: FilePond | null;
+  constructor(props:any) {
+    super(props);
+
+    this.state = {
+      // Set initial files, type 'local' means this is a file
+      // that has already been uploaded to the server (see docs)
+      files: [
+        {
+          source: "index.html",
+          options: {
+            type: "local"
+          }
+        }
+      ]
+    };
+  }
+
+  handleInit() {
+    //console.log("FilePond instance has initialised", this.pond);
+  }
+
+
+  render() {
+    return (
+      <div className="App">
+        <FilePond
+          ref={ref => (this.pond = ref)}
+          files={this.state}
+          allowMultiple={true}
+          allowReorder={true}
+          maxFiles={3}
+          server="/api"
+          name="files" {/* sets the file input name, it's filepond by default */}
+          oninit={() => this.handleInit()}
+          onupdatefiles={fileItems => {
+            // Set currently active file objects to this.state
+            this.setState({
+              files: fileItems.map(fileItem => fileItem.file)
+            });
+          }}
+        />
+      </div>
+    );
+  }
 }

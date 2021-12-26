@@ -1,10 +1,11 @@
 /// <reference types="react" />
-import { ILocalization, ILocalizer, IPluginData, ISectionPlugin } from "@origam/plugin-interfaces";
-export declare class FileUploadPlugin implements ISectionPlugin {
-    $type_ISectionPlugin: 1;
+import { ILocalization, ILocalizer, IPluginData, IScreenPlugin } from "@origam/plugin-interfaces";
+export declare class FileUploadPlugin implements IScreenPlugin {
+    $type_IScreenPlugin: 1;
     id: string;
-    apiurl: string | undefined;
+    apiurl: string;
     filterFileType: string | undefined;
+    invalidFileTypeMessage: string | undefined;
     initialized: boolean;
     initialize(xmlAttributes: {
         [key: string]: string;
@@ -12,8 +13,9 @@ export declare class FileUploadPlugin implements ISectionPlugin {
     getXmlParameter(xmlAttributes: {
         [key: string]: string;
     }, parameterName: string): string;
+    requestSessionRefresh: (() => Promise<any>) | undefined;
     getComponent(data: IPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element;
-    getScreenParameters: (() => {
-        [parameter: string]: string;
-    }) | undefined;
+    setScreenParameters: ((parameters: {
+        [p: string]: string;
+    }) => void) | undefined;
 }
