@@ -91,23 +91,31 @@ export const FilePondComponent: React.FC<{
            <FilePond
               server={
                 {
-                        url: '',
-                        process: {
-                          url: props.apiurl,
-                          method: 'POST',
-                          withCredentials: false,
-                          headers: {
-                              "Content-Type" : "application/json",
-                          },
-                          ondata: (formData) => {
-                            const formdd = new FormData();
-                            //const xxx = formData.get("filepond");
-                            //formdd.append("data",xxx??"");
-                            return formdd;
+                        process: (fieldname,file,metadata,load,error,progress, abort) => {
+                          const request = new XMLHttpRequest();
+                          request.open('POST', props.apiurl +"?filename=" +file.name);
+                          request.setRequestHeader("Content-Type","text/xml");
+                          request.upload.onprogress = (e) => {
+                            progress(e.lengthComputable, e.loaded, e.total);
+                        };
+            
+                        // Should call the load method when done and pass the returned server file id
+                        // this server file id is then used later on when reverting or restoring a file
+                        // so your server knows which file to return without exposing that info to the client
+                        request.onload = function () {
+                            if (request.status >= 200 && request.status < 300) {
+                                // the load method accepts either a string (id) or an object
+                                load(request.responseText);
+                            } else {
+                                // Can call the error method if something is wrong, should exit after
+                                error('oh no' + request.status);
+                            }
+                        };
+                        request.send(file);
                         },
                       }
                     }
-                }
+                
         allowFileTypeValidation={true}
         acceptedFileTypes={[ftype]}
         labelFileTypeNotAllowed={props.invalidFileTypeMessage}
@@ -117,7 +125,7 @@ export const FilePondComponent: React.FC<{
         allowReorder={true}
         allowMultiple={true}
         onupdatefiles={setFiles}
-        onerror={(error,status) => {if (error.code == 401) {alert("Please logout and login again.")} else {alert(error.body)}}}
+        onerror={(error) => {if (error.code == 401) {alert("Please logout and login again.")} else {alert(error.body)}}}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
       </div>
