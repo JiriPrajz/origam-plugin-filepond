@@ -108,10 +108,24 @@ export const FilePondComponent: React.FC<{
                                 load(request.responseText);
                             } else {
                                 // Can call the error method if something is wrong, should exit after
-                                error('oh no' + request.status);
+                                if(request.status == 401)
+                                {
+                                  error("Please logout and login again.");
+                                }
+                                error(request.status + ' ' + request.statusText);
                             }
                         };
                         request.send(file);
+                        // Should expose an abort method so the request can be cancelled
+                        return {
+                          abort: () => {
+                              // This function is entered if the user has tapped the cancel button
+                              request.abort();
+
+                              // Let FilePond know the request has been cancelled
+                              abort();
+                          },
+                        };
                         },
                       }
                     }
