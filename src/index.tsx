@@ -77,6 +77,7 @@ export class FileUploadPlugin implements IScreenPlugin {
   @observable
   getScreenParameters: (() => { [parameter: string]: string }) | undefined;
 }
+
 export const FilePondComponent: React.FC<{
   fileType:string | undefined;
   apiurl:string;
@@ -88,7 +89,25 @@ export const FilePondComponent: React.FC<{
     <div className={S.mainContainer}>
       <div className="FilePondComponent">
            <FilePond
-        server={props.apiurl}
+              server={
+                {
+                        url: '',
+                        process: {
+                          url: props.apiurl,
+                          method: 'POST',
+                          withCredentials: false,
+                          headers: {
+                              "Content-Type" : "application/json",
+                          },
+                          ondata: (formData) => {
+                            const formdd = new FormData();
+                            //const xxx = formData.get("filepond");
+                            //formdd.append("data",xxx??"");
+                            return formdd;
+                        },
+                      }
+                    }
+                }
         allowFileTypeValidation={true}
         acceptedFileTypes={[ftype]}
         labelFileTypeNotAllowed={props.invalidFileTypeMessage}
@@ -98,7 +117,7 @@ export const FilePondComponent: React.FC<{
         allowReorder={true}
         allowMultiple={true}
         onupdatefiles={setFiles}
-        onerror={(error,status) => alert(status)}
+        onerror={(error,status) => {if (error.code == 401) {alert("Please logout and login again.")} else {alert(error.body)}}}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
       </div>
