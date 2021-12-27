@@ -84,7 +84,7 @@ export const FilePondComponent: React.FC<{
   invalidFileTypeMessage:string | undefined
 }> = (props) => {
   const ftype: string = props.fileType ?? "";
-  const [files, setFiles]:any = useState([])
+  const [files] = useState([])
   return (
     <div className={S.mainContainer}>
       <div className="FilePondComponent">
@@ -138,7 +138,12 @@ export const FilePondComponent: React.FC<{
         files={files}
         allowReorder={true}
         allowMultiple={true}
-        onupdatefiles={setFiles}
+        onupdatefiles={(fileItems) => {
+          // Set current file objects to this.state
+          useState({
+              files: fileItems.map((fileItem) => fileItem.file),
+          });
+      }}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
       </div>
