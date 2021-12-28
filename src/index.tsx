@@ -39,6 +39,8 @@ registerPlugin(FilePondPluginFileValidateType);
 const apiurl = "ApiUrl";
 const filterFileType = "FilterFileType";
 const invalidFileTypeMessage = "InvalidFileTypeMessage"
+const maxParallelUploads = "MaxParallelUploads"
+const instantUpload = "InstantUpload"
 
 export class FileUploadPlugin implements IScreenPlugin {
   requestSessionRefresh: (() => Promise<any>) | undefined;
@@ -48,6 +50,8 @@ export class FileUploadPlugin implements IScreenPlugin {
   apiurl: string ;
   filterFileType: string | undefined;
   invalidFileTypeMessage: string | undefined;
+  instantUpload:boolean | undefined;
+  maxParallelUploads:number | undefined;
 
   @observable
   initialized = false;
@@ -56,6 +60,8 @@ export class FileUploadPlugin implements IScreenPlugin {
     this.apiurl = this.getXmlParameter(xmlAttributes, apiurl);
     this.filterFileType = this.getXmlParameter(xmlAttributes, filterFileType);
     this.invalidFileTypeMessage = this.getXmlParameter(xmlAttributes, invalidFileTypeMessage);
+    this.instantUpload = (this.getXmlParameter(xmlAttributes, instantUpload) =="true");
+    this.maxParallelUploads = Number.parseInt(this.getXmlParameter(xmlAttributes, maxParallelUploads));
     this.initialized = true;
   }
   getXmlParameter(xmlAttributes: { [key: string]: string }, parameterName: string) {
@@ -72,7 +78,8 @@ export class FileUploadPlugin implements IScreenPlugin {
     if (!this.initialized) {
       return <></>;
     }
-    return (<FilePondComponent fileType={this.filterFileType} apiurl={this.apiurl} invalidFileTypeMessage={this.invalidFileTypeMessage}/>    );
+    return (<FilePondComponent fileType={this.filterFileType} apiurl={this.apiurl} invalidFileTypeMessage={this.invalidFileTypeMessage} 
+    instantUpload={this.instantUpload} maxParallelUploads={this.maxParallelUploads} />    );
   }
   @observable
   getScreenParameters: (() => { [parameter: string]: string }) | undefined;
@@ -82,6 +89,9 @@ export const FilePondComponent: React.FC<{
   fileType:string | undefined;
   apiurl:string;
   invalidFileTypeMessage:string | undefined
+  instantUpload:boolean | undefined
+  maxParallelUploads:number | undefined
+
 }> = (props) => {
   const ftype: string = props.fileType ?? "";
   const [files] = useState([])
@@ -135,8 +145,8 @@ export const FilePondComponent: React.FC<{
         allowFileTypeValidation={true}
         acceptedFileTypes={[ftype]}
         labelFileTypeNotAllowed={props.invalidFileTypeMessage}
-        instantUpload={true}
-        maxParallelUploads={1}
+        instantUpload={props.instantUpload??false}
+        maxParallelUploads={props.maxParallelUploads??1}
         files={files}
         allowReorder={true}
         allowMultiple={true}
