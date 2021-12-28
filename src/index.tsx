@@ -85,9 +85,11 @@ export const FilePondComponent: React.FC<{
 }> = (props) => {
   const ftype: string = props.fileType ?? "";
   const [files] = useState([])
+  const [setFiles]:any = useState([])
   return (
     <div className={S.mainContainer}>
-      <div className="FilePondComponent">
+      <div className={S.subContainer}>
+      <div className="FilePondComponent" >
            <FilePond
               server={
                 {
@@ -133,19 +135,15 @@ export const FilePondComponent: React.FC<{
         allowFileTypeValidation={true}
         acceptedFileTypes={[ftype]}
         labelFileTypeNotAllowed={props.invalidFileTypeMessage}
-        instantUpload={false}
+        instantUpload={true}
         maxParallelUploads={1}
         files={files}
         allowReorder={true}
         allowMultiple={true}
-        onupdatefiles={(fileItems) => {
-          // Set current file objects to this.state
-          useState({
-              files: fileItems.map((fileItem) => fileItem.file),
-          });
-      }}
+        onupdatefiles={setFiles}
         labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
+      </div>
       </div>
       </div>
   )
