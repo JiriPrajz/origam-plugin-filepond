@@ -1,5 +1,5 @@
 {
-  "name": "@origam/plugin-fileupload",
+  "name": "origam-plugin-filepond",
   "main": "dist/index.js",
   "version": "1.0.0",
   "license": "GPL-3.0",
