@@ -13,6 +13,16 @@ import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 
 import 'filepond/dist/filepond.min.css'
 
+
+// Import the Image EXIF Orientation and Image Preview plugins
+// Note: These need to be installed separately
+import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+
+// Register the plugins
+registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+
 // Register the plugin
 registerPlugin(FilePondPluginFileValidateType);
 
@@ -82,57 +92,18 @@ export const FilePondComponent: React.FC<{
       <div className={S.subContainer}>
       <div className="FilePondComponent" >
            <FilePond
-              server={
-                {
-                        process: (fieldname,file,metadata,load,error,progress, abort) => {
-                          const request = new XMLHttpRequest();
-                          request.open('POST', props.apiurl +"?filename=" +file.name);
-                          request.setRequestHeader("Content-Type","text/xml");
-                          request.upload.onprogress = (e) => {
-                            progress(e.lengthComputable, e.loaded, e.total);
-                        };
-            
-                        // Should call the load method when done and pass the returned server file id
-                        // this server file id is then used later on when reverting or restoring a file
-                        // so your server knows which file to return without exposing that info to the client
-                        request.onload = function () {
-                            if (request.status >= 200 && request.status < 300) {
-                                // the load method accepts either a string (id) or an object
-                                load(request.responseText);
-                            } else {
-                                // Can call the error method if something is wrong, should exit after
-                                if(request.status == 401)
-                                {
-                                  error("Please logout and login again.");
-                                }
-                                error(request.status + ' ' + request.statusText);
-                            }
-                        };
-                        request.send(file);
-                        // Should expose an abort method so the request can be cancelled
-                        return {
-                          abort: () => {
-                              // This function is entered if the user has tapped the cancel button
-                              request.abort();
-
-                              // Let FilePond know the request has been cancelled
-                              abort();
-                          },
-                        };
-                        },
-                      }
-                    }
-                
-        allowFileTypeValidation={true}
-        acceptedFileTypes={[ftype]}
-        labelFileTypeNotAllowed={props.invalidFileTypeMessage}
-        instantUpload={props.instantUpload??false}
-        maxParallelUploads={props.maxParallelUploads??1}
-        files={files}
-        allowReorder={true}
-        allowMultiple={true}
-        onupdatefiles={setFiles}
-        labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+              server={props.apiurl}
+              allowFileTypeValidation={true}
+              acceptedFileTypes={[ftype]}
+              labelFileTypeNotAllowed={props.invalidFileTypeMessage}
+              instantUpload={props.instantUpload??false}
+              maxParallelUploads={props.maxParallelUploads??1}
+              files={files}
+              allowReorder={true}
+              allowMultiple={true}
+              onupdatefiles={setFiles}
+              onerror={(error) => {if(error.code == 401) {alert("Please logout and login again.")} else {alert(error.body)}}}
+              labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
       />
       </div>
       </div>
