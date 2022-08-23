@@ -2,6 +2,8 @@ Contains file upload plugin for Origam based on the filepond.js library.
 
 ## File Upload Plugin
 
+FileUploadPlugin
+
 Properties that can be read from the model (defined in a widget):
 
 - `ApiUrl` name of a string field which will be used to set endpoint
