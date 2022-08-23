@@ -5,9 +5,9 @@ import moment from "moment";
 import {
   ILocalization,
   ILocalizer,
-  IPluginData,
-  IScreenPlugin
-} from "@origam/plugin-interfaces";
+  IScreenPlugin,
+  IScreenPluginData,
+} from "@origam/plugins";
 import { FilePond,registerPlugin } from "react-filepond";
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 
@@ -34,6 +34,9 @@ const maxParallelUploads = "MaxParallelUploads"
 const instantUpload = "InstantUpload"
 
 export class FileUploadPlugin implements IScreenPlugin {
+  onSessionRefreshed(): void {
+    throw new Error('Method not implemented.');
+  }
   requestSessionRefresh: (() => Promise<any>) | undefined;
   setScreenParameters: ((parameters: { [key: string]: string; }) => void) | undefined;
   $type_IScreenPlugin: 1 = 1;
@@ -62,7 +65,7 @@ export class FileUploadPlugin implements IScreenPlugin {
     return xmlAttributes[parameterName];
   }
 
-  getComponent(data: IPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
+  getComponent(data: IScreenPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
     const localizer = createLocalizer([]);
     
     moment.locale(localizer.locale)

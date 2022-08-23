@@ -1,7 +1,7 @@
 {
   "name": "origam-plugin-filepond",
   "main": "dist/index.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "GPL-3.0",
   "files": [
     "dist"
@@ -27,7 +27,7 @@
     "start": "rollup -c -w"
   },
   "dependencies": {
-    "@origam/plugin-interfaces": "^1.2.0",
+    "@origam/plugins": "^1.0.2",
     "filepond": "^4.30.3",
     "filepond-plugin-file-validate-type": "^1.2.6",
     "filepond-plugin-image-exif-orientation": "^1.0.11",
