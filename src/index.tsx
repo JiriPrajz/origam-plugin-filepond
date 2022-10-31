@@ -1,7 +1,6 @@
 import S from './styles.module.scss';
 import { observable } from "mobx";
 import React, { useState } from "react";
-import moment from "moment";
 import {
   ILocalization,
   ILocalizer,
@@ -34,6 +33,7 @@ const maxParallelUploads = "MaxParallelUploads"
 const instantUpload = "InstantUpload"
 
 export class FileUploadPlugin implements IScreenPlugin {
+  createLocalizer: ((localizations: ILocalization[]) => ILocalizer) | undefined;
   onSessionRefreshed(): void {
     throw new Error('Method not implemented.');
   }
@@ -66,9 +66,7 @@ export class FileUploadPlugin implements IScreenPlugin {
   }
 
   getComponent(data: IScreenPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
-    const localizer = createLocalizer([]);
-    
-    moment.locale(localizer.locale)
+    this.createLocalizer = createLocalizer;
     if (!this.initialized) {
       return <></>;
     }
