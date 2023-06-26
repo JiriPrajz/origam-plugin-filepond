@@ -89,7 +89,12 @@ export const FilePondComponent: React.FC<{
   const [files] = useState([])
   const [setFiles]:any = useState([])
   function getAuthorization(): string | number | boolean {
-    return ` Bearer ${sessionStorage.getItem('origamAuthToken')}`;
+    const token = sessionStorage.getItem('origamAuthToken');
+    if(token != null)
+    {
+      return ` Bearer ${sessionStorage.getItem('origamAuthToken')}`;
+    }
+    return "";
   }
 
   return (
