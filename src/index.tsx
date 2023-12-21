@@ -35,13 +35,13 @@ const instantUpload = "InstantUpload"
 export class FileUploadPlugin implements IScreenPlugin {
   createLocalizer: ((localizations: ILocalization[]) => ILocalizer) | undefined;
   onSessionRefreshed(): void {
-    throw new Error('Method not implemented.');
+    
   }
   requestSessionRefresh: (() => Promise<any>) | undefined;
   setScreenParameters: ((parameters: { [key: string]: string; }) => void) | undefined;
   $type_IScreenPlugin: 1 = 1;
   id: string = ""
-  apiurl: string ;
+  apiurl: string = "";
   filterFileType: string | undefined;
   invalidFileTypeMessage: string | undefined;
   instantUpload:boolean | undefined;
