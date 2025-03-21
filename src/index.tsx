@@ -1,6 +1,6 @@
 import S from './styles.module.scss';
 import { observable } from "mobx";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IScreenPlugin } from "plugins/interfaces/IScreenPlugin";
 import { IScreenPluginData } from "plugins/interfaces/IScreenPluginData";
 import { ILocalization } from "plugins/interfaces/ILocalization";
@@ -69,62 +69,140 @@ export class FileUploadPlugin implements IScreenPlugin {
     if (!this.initialized) {
       return <></>;
     }
-    return (<FilePondComponent fileType={this.filterFileType} apiurl={this.apiurl} invalidFileTypeMessage={this.invalidFileTypeMessage} 
-    instantUpload={this.instantUpload} maxParallelUploads={this.maxParallelUploads} />    );
+    return (<FilePondComponent 
+                    fileType={this.filterFileType} 
+                    apiurl={this.apiurl} 
+                    invalidFileTypeMessage={this.invalidFileTypeMessage} 
+                    instantUpload={this.instantUpload} 
+                    maxParallelUploads={this.maxParallelUploads}
+
+            />
+           );
   }
   @observable
   getScreenParameters: (() => { [parameter: string]: string }) | undefined;
 }
 
 export const FilePondComponent: React.FC<{
-  fileType:string | undefined;
-  apiurl:string;
-  invalidFileTypeMessage:string | undefined
-  instantUpload:boolean | undefined
-  maxParallelUploads:number | undefined
-
+  fileType: string | undefined;
+  apiurl: string;
+  invalidFileTypeMessage: string | undefined;
+  instantUpload: boolean | undefined;
+  maxParallelUploads: number | undefined;
 }> = (props) => {
   const ftype: string = props.fileType ?? "";
-  const [files] = useState([])
-  const [setFiles]:any = useState([])
-  function getAuthorization(): string | number | boolean {
-    const token = sessionStorage.getItem('origamAuthToken');
-    if(token != null)
-    {
-      return ` Bearer ${sessionStorage.getItem('origamAuthToken')}`;
+  const [files, setFiles] = useState<File[]>([]);
+
+  function getAuthorization(): string {
+    const token = sessionStorage.getItem("origamAuthToken");
+    if (token != null) {
+      return `Bearer ${token}`;
     }
-    return "";
+    return ""; // Ensure the return type is always a string
   }
+
+  // Funkce pro smazání souboru
+  async function deleteFile(fileId: string): Promise<void> {
+    const confirmDelete = window.confirm("Opravdu chcete smazat tento soubor?");
+    if (!confirmDelete) {
+      return; // Pokud uživatel nepotvrdí, akce se zruší
+    }
+
+    try {
+      const response = await fetch(`${props.apiurl}/files/${fileId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: getAuthorization(),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete file: ${response.statusText}`);
+      }
+
+      // Po úspěšném smazání aktualizujeme stav `files`
+      setFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileId));
+      alert("Soubor byl úspěšně smazán.");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert("Nepodařilo se smazat soubor.");
+    }
+  }
+
+  // Načtení souborů při inicializaci komponenty
+  useEffect(() => {
+    async function fetchFiles() {
+      try {
+        const response = await fetch(`${props.apiurl}/files`, {
+          headers: {
+            Authorization: getAuthorization(),
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch files: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // Předpokládáme, že server vrací pole souborů s vlastností `file`
+        const initialFiles = data.map((file: any) => ({
+          source: file.id, // Unikátní identifikátor souboru
+          options: {
+            type: "local",
+          },
+        }));
+        setFiles(initialFiles);
+      } catch (error) {
+        console.error("Error fetching files:", error);
+      }
+    }
+
+    fetchFiles();
+  }, [props.apiurl]); // Spustí se pouze při změně `props.apiurl`
 
   return (
     <div className={S.mainContainer}>
       <div className={S.subContainer}>
-      <div className="FilePondComponent" >
-           <FilePond
-              server={
-               {
-                  process: {
-                      url: props.apiurl,
-                      headers: ({
-                        Authorization: getAuthorization()
-                      })
-                  }
+        <div className="FilePondComponent">
+          <FilePond
+            server={{
+              process: {
+                url: props.apiurl,
+                headers: {
+                  Authorization: getAuthorization(),
+                },
+              },
+              revert: async (uniqueFileId, load, error) => {
+                try {
+                  await deleteFile(uniqueFileId); // Volání funkce pro smazání souboru
+                  load(); // Informuje FilePond, že soubor byl úspěšně smazán
+                } catch (err) {
+                  error("Nepodařilo se smazat soubor.");
+                }
               }
+            }}
+            allowFileTypeValidation={true}
+            acceptedFileTypes={[ftype]}
+            labelFileTypeNotAllowed={props.invalidFileTypeMessage}
+            instantUpload={props.instantUpload ?? false}
+            maxParallelUploads={props.maxParallelUploads ?? 1}
+            files={files}
+            allowReorder={true}
+            allowMultiple={true}
+            onupdatefiles={(fileItems) => {
+              setFiles(fileItems.map((fileItem) => fileItem.file as File));
+            }}
+            onerror={(error: any) => {
+              if (error.code == 401) {
+                alert("Please logout and login again.");
+              } else {
+                alert(error.body);
               }
-              allowFileTypeValidation={true}
-              acceptedFileTypes={[ftype]}
-              labelFileTypeNotAllowed={props.invalidFileTypeMessage}
-              instantUpload={props.instantUpload??false}
-              maxParallelUploads={props.maxParallelUploads??1}
-              files={files}
-              allowReorder={true}
-              allowMultiple={true}
-              onupdatefiles={setFiles}
-              onerror={(error: any) => {if(error.code == 401) {alert("Please logout and login again.")} else {alert(error.body)}}}
-              labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
-      />
+            }}
+            labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+          />
+        </div>
       </div>
-      </div>
-      </div>
-  )
-}
+    </div>
+  );
+};
