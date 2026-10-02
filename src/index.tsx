@@ -64,7 +64,7 @@ export class FileUploadPlugin implements IScreenPlugin {
     return xmlAttributes[parameterName];
   }
 
-  getComponent(data: IScreenPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): JSX.Element {
+  getComponent(data: IScreenPluginData, createLocalizer: (localizations: ILocalization[]) => ILocalizer): React.JSX.Element {
     this.createLocalizer = createLocalizer;
     if (!this.initialized) {
       return <></>;
